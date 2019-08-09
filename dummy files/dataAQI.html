@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
+        <script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+        <script type="text/javascript">
+
+          var delay = 100;
+          var i =0;
+          var data1;
+          var info;
+              var coordinates = [];
+                              var cityArr = ["Adilabad", "Adoni", "Alwal", "Anakapalle", "Anantapur", "Bapatla", "Belampalli", "Bhimavaram", "Bhongir", "Bobbili", "Bodhan", "Chilakalurupet", "Chinna Chawk", "Chirala", "Chittur", "Cuddapah", "Dharmavaram", "Dhone", "Eluru", "Gaddiannaram", "Gadwal", "Gajuwaka", "Gudivada", "Gudur", "Guntakal", "Guntur", "Hindupur", "Hyderabad", "Jagtial", "Kadiri", "Kagaznagar", "Kakinada", "Kallur", "Kamareddi", "Kapra", "Karimnagar", "Karnul", "Khammam", "Kondukur", "Koratla", "Kottagudem", "Kukatpalle", "Lalbahadur Nagar", "Machilipatnam", "Mahbubnagar", "Malkajgiri", "Mancheral", "Mandamarri", "Mangalagiri", "Markapur", "Miryalaguda", "Nalgonda", "Nandyal", "Narasapur", "Narasaraopet", "Nellur", "Nirmal", "Nizamabad", "Nuzvid", "Ongole", "Palakollu", "Palasa", "Palwancha", "Patancheru", "Piduguralla", "Ponnur", "Proddatur", "Qutubullapur", "Rajamahendri", "Rajampet", "Rajendranagar", "Ramachandrapuram", "Ramagundam", "Rayachoti", "Rayadrug", "Samalkot", "Sangareddi", "Sattenapalle", "Serilungampalle", "Siddipet", "Sirsilla", "Srikakulam", "Srikalahasti", "Suriapet", "Tadepalle", "Tadepallegudem", "Tadpatri", "Tanuku", "Tenali", "Tirupati", "Tuni", "Uppal Kalan", "Vijayawada", "Vinukonda", "Visakhapatnam", "Vizianagaram", "Vuyyuru", "Wanparti", "Warangal", "Yemmiganur"];
+              const http = new XMLHttpRequest()
+              var url1="https://api.breezometer.com/baqi/?lat=";
+              var url2="&lon=";
+              var url3="&key=a521ca6b073c4b279ce6cd08a5c3101b";
+              var url="";
+        function initialize() {
+          geocoder = new google.maps.Geocoder();
+        var address = document.getElementById("my-address");
+        var autocomplete = new google.maps.places.Autocomplete(address);
+        autocomplete.setTypes(['geocode']);
+        google.maps.event.addListener(autocomplete, 'place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                return;
+            }
+
+        var address = '';
+        if (place.address_components) {
+            address = [
+                (place.address_components[0] && place.address_components[0].short_name || ''),
+                (place.address_components[1] && place.address_components[1].short_name || ''),
+                (place.address_components[2] && place.address_components[2].short_name || '')
+                ].join(' ');
+        }
+      });
+}
+function getAdd(e, next){
+  geocoder.geocode( { 'address': e}, function(results, status) {
+    var a = results;
+
+    if (status == google.maps.GeocoderStatus.OK) {
+      console.log(i);
+
+      url=url1+a[0].geometry.location.lat()+url2+a[0].geometry.location.lng()+url3;
+      $.ajax({
+        type: 'GET',
+        url: url,
+        success: function(f){
+          console.log('doing');
+          coordinates.push({
+            name: e,
+            Latitude: a[0].geometry.location.lat(),
+            Longitude: a[0].geometry.location.lng(),
+            aqi: f
+          });
+        }
+      }).fail(function(f){
+        alert('error');
+      });
+      /*http.open("GET",url)
+      http.send()
+      http.onload = () =>coordinates.push({
+        name: e,
+        Latitude: a[0].geometry.location.lat(),
+        Longitude: a[0].geometry.location.lng(),
+        aqi: http.responseText
+      });*/
+
+    //console.log("Latitude: "+results[0].geometry.location.lat()+" Longitude: "+results[0].geometry.location.lng());
+    }
+
+    else {
+      if(status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT){
+        i--;
+        delay++;
+      }
+      //alert("Geocode was not successful for the following reason: " + status);
+    }
+  });
+  next();
+}
+function codeAddress() {
+    if(i<cityArr.length){
+      var address = cityArr[i];
+      setTimeout('getAdd("'+address+'",codeAddress)', delay);
+      i++;
+    }
+    else{
+      console.log('doing');
+      $.ajax({
+        type: "POST",
+        url: '/addData',
+        data: {e: coordinates},
+        success: function(e){
+          console.log(e);
+        }
+      }).fail(function(e){
+        console.log(e);
+      });
+    }
+  }
+google.maps.event.addDomListener(window, 'load', initialize);
+
+        </script>
+    </head>
+    <body>
+        <button id="getCords" onClick="codeAddress();">getLat&Long</button>
+    </body>
+</html>
